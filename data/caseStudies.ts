@@ -162,26 +162,111 @@ export const caseStudies: Record<string, ContentBlock[]> = {
       caption:
         "Value for Money and Ground Service correlate most strongly with both overall rating and recommendation across airlines.",
     },
+    {
+      type: "image",
+      src: "/projects/traveloka-cx-analysis/mean-ratings-by-recommendation.png",
+      alt: "Bar chart comparing mean service ratings between passengers who recommended the airline and those who did not, across six service touchpoints",
+      caption:
+        "The same story from a second angle: recommenders and non-recommenders are separated by a 1.8-point gap on Cabin Staff, but only 0.02 points on WiFi.",
+    },
     { type: "heading", text: "Segmenting travelers before, not after, the flight" },
     {
       type: "paragraph",
-      text: "Clustering directly on post-flight review features risked circularity — a passenger who already had a lounge access might simply rate lounge features more favorably regardless of whether they cared about lounges going in. So we clustered on pre-booking characteristics instead: traveler type (solo, couple, family, business) and cabin class, using a CART decision tree constrained to a max depth of 3. That collapsed the 16 possible demographic combinations into 6 statistically distinct macro-segments — revealing, for instance, that families and couples across different cabin classes merge into one segment (shared logistics needs outweigh cabin-class expectations), while solo economy and solo business travelers split sharply (their expectations anchor entirely to what they paid).",
-    },
-    { type: "heading", text: "Random Forest as a sensitivity extractor" },
-    {
-      type: "paragraph",
-      text: "For each of the 6 CART segments, I trained an independent Random Forest regressor (100 trees) on an 80/20 train/holdout split, testing three feature subsets per segment — all features, quantitative ratings only, and NLP sentiment only — and selected the winner by Adjusted R², which penalizes variables that don't earn their keep. NLP-only models underperformed consistently across every segment: passengers often use free text to vent about a specific gripe while still rating the flight 8/10 overall, which makes review sentiment a noisy predictor next to structured ratings. Rating-based models, by contrast, reached Adjusted R² near 0.80 for segments like Family Essentials and High-Tier Social travelers, with an average prediction error of roughly 1–1.3 stars on a 10-point scale on unseen data.",
+      text: "Clustering directly on post-flight review features risked circularity — a passenger who already had lounge access might simply rate lounge features more favorably regardless of whether they cared about lounges going in. So the segmentation uses only pre-booking characteristics: traveler type (solo leisure, couple/family leisure, business) and cabin class, one-hot encoded and fed into a CART regression tree (`DecisionTreeRegressor`, max depth 3, minimum 100 passengers per leaf) trained to predict `overall_rating`. No review text and no NLP features go into this step at all — segmentation has to be knowable before the flight happens, or it can't be used to make a booking recommendation.",
     },
     {
       type: "image",
-      src: "/projects/traveloka-cx-analysis/shap-beeswarm.png",
-      alt: "SHAP beeswarm plot showing Cabin Staff and Seat Comfort as the dominant drivers of predicted overall rating",
+      src: "/projects/traveloka-cx-analysis/cart-tree.png",
+      alt: "CART decision tree splitting passengers first on business-class cabin, then on solo-leisure traveler type, then on first-class cabin or business traveler type, producing seven leaf segments",
       caption:
-        "SHAP values across passengers: Cabin Staff and Seat Comfort dominate the model's predictions; WiFi and inflight entertainment barely register.",
+        "The actual fitted tree: business-class cabin is the first split, solo-leisure status the second — cabin class alone doesn't determine the segment.",
     },
     {
       type: "paragraph",
-      text: "Pulling feature importances out of each segment's winning model, then applying SHAP to explain individual predictions, showed that service priorities shift substantially by segment: Cabin Staff drove 65.9% of predicted satisfaction for the Family Essentials segment, Seat Comfort drove 49.6% for Budget Corporate travelers, and Food & Beverages carried unusual weight (18.9%) for Elite Solo travelers. Across nearly every segment, low-effort amenities — WiFi, inflight entertainment, washroom cleanliness — contributed under 2% regardless of how the segment was defined.",
+      text: "The tree's first split isn't traveler type, it's cabin: business class or not. Within each branch, the next split is whether the traveler is flying solo for leisure — and only after that does first class or business-traveler status matter. That ordering itself is a finding: cabin class dominates, but it doesn't fully determine expectations on its own. The tree bottoms out at seven leaf segments, each with a distinct baseline satisfaction level before any service rating is even considered:",
+    },
+    {
+      type: "list",
+      items: [
+        "Couples/family, non-business cabin (n=857) — baseline rating 4.46, the more price-conscious end of leisure travel.",
+        "Business travelers, non-business cabin (n=180) — baseline 3.83, the lowest of any segment: corporate travelers stuck in economy are the hardest to satisfy.",
+        "Solo leisure, non-business, non-first cabin (n=22,896) — by far the largest segment, baseline 5.91.",
+        "Solo leisure, first class (n=644) — baseline 6.68.",
+        "Couples/family, business class (n=103) — baseline 6.51.",
+        "Solo leisure, business class (n=4,706) — baseline 6.92, the highest of any segment.",
+        "Business travelers, business class (n=102) — baseline 5.90.",
+      ],
+    },
+    {
+      type: "paragraph",
+      text: "Business travelers show up as the least satisfied group in economy and only a middling one in business class — while solo leisure travelers in business class are the most satisfied group in the entire dataset. Cabin class predicts a lot, but who's sitting in it changes the story.",
+    },
+    { type: "heading", text: "Where the review-text sentiment actually fits" },
+    {
+      type: "paragraph",
+      text: "The segmentation above is demographic-only on purpose — it has to be, since a passenger's own post-flight review can't inform a recommendation shown before they fly. The language-processing work runs on a separate track: Aspect-Based Sentiment Analysis (ABSA) parses each free-text review and assigns a sentiment score per service aspect — comfort, staff, food, entertainment — rather than one blended sentiment score for the whole review, so a passenger who raves about the crew but complains about legroom produces two opposing signals instead of one averaged-out one. Those per-aspect scores get exported to CSV and only enter the modeling stage afterward, as their own standalone feature set tested against the structured ratings — never as an input to the clustering itself.",
+    },
+    { type: "heading", text: "Two Random Forests per segment, three feature sets each" },
+    {
+      type: "paragraph",
+      text: "Within each of the seven segments, I trained two separate Random Forest models: a RandomForestRegressor predicting overall_rating (1–10) and a RandomForestClassifier predicting recommended (0/1). Each was run three times per segment on three different feature sets — Model A with all 13 features (6 structured ratings + 7 ABSA sentiment scores), Model B with the 6 ratings only, and Model C with the 7 sentiment scores only — to directly test whether the language-processing features add anything the ratings don't already capture. Every one of the 6 models per segment was tuned with RandomizedSearchCV (10 sampled hyperparameter combinations, searching tree count, depth, split size, and max features) evaluated by 3-fold cross-validation, then scored again on a held-out test set the tuning process never saw.",
+    },
+    {
+      type: "paragraph",
+      text: "The classifier and regressor use different scoring metrics on purpose. The regressor is tuned and selected on R² (tiebreak: lowest MAE) since overall_rating is continuous. The classifier is tuned and selected on ROC-AUC rather than accuracy (tiebreak: highest F1), because roughly 60% of passengers recommend their airline — a model that just predicts \"yes\" every time would already score 60% accuracy without learning anything. Both the 3-fold CV inside RandomizedSearchCV and the final holdout evaluation are leakage-guarded the same way as the rest of the project: the 80/20 train/test split happens first, and every imputed value (median for ratings, mode for categoricals) is computed from the training fold only, then applied to both sides.",
+    },
+    {
+      type: "paragraph",
+      text: "Across nearly every segment, the ratings-only model (B) matched or beat the sentiment-only model (C) on both R² and ROC-AUC — confirming that free-text sentiment is a noisy stand-in for a rating passengers already gave directly. Where Model A (all 13 features) edged out Model B, the gain was small, meaning ABSA sentiment adds a little marginal signal on top of the ratings but isn't a replacement for them.",
+    },
+    {
+      type: "image",
+      src: "/projects/traveloka-cx-analysis/regression-importance-heatmap.png",
+      alt: "Heatmap of Random Forest regression feature importance for predicting overall rating, broken out by each of the seven CART segments",
+      caption:
+        "What each segment's winning regressor actually weighs: Cabin Staff dominates everywhere, but Ground Service only matters for non-business-class leisure and business-traveler segments — it's worth ~0% for every solo-leisure and business-class-leisure segment.",
+    },
+    {
+      type: "paragraph",
+      text: "Reading the heatmap segment by segment: the two economy/premium leisure segments (couples and business travelers stuck outside business class) are the only ones where Ground Service carries real weight — 33.5% and 22.3% of the regressor's decisions, versus under 2% everywhere else. Food & Beverages matters most for the first-class solo segment (26.4%) and both business-class leisure segments (23.7–19.4%), where the meal is part of what's being paid for. Inflight Entertainment barely registers anywhere except the business-class business-traveler segment (10.6%), the only group with enough downtime and low other-service variance for it to show up at all. WiFi is statistically irrelevant in every single segment.",
+    },
+    {
+      type: "image",
+      src: "/projects/traveloka-cx-analysis/classification-importance-heatmap.png",
+      alt: "Heatmap of Random Forest classification feature importance for predicting recommendation, broken out by each of the seven CART segments",
+      caption:
+        "The classifier (predicting whether a passenger recommends the airline) largely agrees with the regressor's ranking, but Inflight Entertainment jumps to 17.3% for business travelers in business class — enough to change what \"recommend to this segment\" should emphasize.",
+    },
+    {
+      type: "heading", text: "What SHAP adds beyond feature importance" },
+    {
+      type: "paragraph",
+      text: "Feature importance says how much a variable matters on average; it can't say whether a high rating helps as much as a low rating hurts. Running SHAP's TreeExplainer against a global Random Forest — one regressor for overall_rating, one classifier for recommended, both trained on the 6 rating features across all passengers — makes that visible per individual passenger rather than per segment.",
+    },
+    {
+      type: "image",
+      src: "/projects/traveloka-cx-analysis/shap-beeswarm-overall-rating.png",
+      alt: "SHAP beeswarm plot showing Cabin Staff and Seat Comfort as the dominant drivers of predicted overall rating",
+      caption:
+        "SHAP values across passengers for overall rating: Cabin Staff and Seat Comfort dominate; WiFi and Ground Service barely register at the global level.",
+    },
+    {
+      type: "image",
+      src: "/projects/traveloka-cx-analysis/shap-beeswarm-recommended.png",
+      alt: "SHAP beeswarm plot showing the same features' impact on the probability of recommending the airline",
+      caption:
+        "The same ranking holds for predicting recommendation directly — Cabin Staff and Seat Comfort still lead, confirming the regressor and classifier agree on what matters.",
+    },
+    {
+      type: "image",
+      src: "/projects/traveloka-cx-analysis/shap-distributions.png",
+      alt: "Box plots of SHAP value distributions per feature, showing longer left whiskers than right whiskers for the top features, indicating loss aversion",
+      caption:
+        "For Cabin Staff and Seat Comfort, the downside tail is consistently longer than the upside tail — a bad rating drags the prediction down by more than an equally-extreme good rating pulls it up.",
+    },
+    {
+      type: "paragraph",
+      text: "That asymmetry is the practical finding SHAP adds on top of the segment heatmaps: for the two features that matter most everywhere, poor service costs more than excellent service gains. A 1-star Cabin Staff rating pulls a passenger's predicted overall rating down by up to 4 points; a 5-star rating pulls it up by at most 3. Fixing bad cabin-crew experiences protects satisfaction more reliably than trying to engineer exceptional ones.",
     },
     { type: "heading", text: "From model output to product recommendation" },
     {
@@ -190,7 +275,9 @@ export const caseStudies: Record<string, ContentBlock[]> = {
         "Lead with value, not price: surface a \"Best Value\" signal rather than \"Lowest Price\" badges, since Value for Money is the strongest correlate of both satisfaction and recommendation.",
         "Emphasize physical cabin dimensions in the booking UI — seat storage, legroom, and width correlate more strongly with satisfaction than digital amenities like power outlets or seatback screens.",
         "Set realistic expectations for lounges specifically: lounges score well on individual features but have the lowest recommendation rate of the four categories (36%), suggesting a gap between marketed luxury and lived experience.",
-        "Tag airlines by segment fit — e.g. \"Top-Rated Family Service\" for family travelers, \"Elite Staff & Dining\" for premium solo travelers — using each segment's own feature-importance weights rather than a single generic rating.",
+        "Tag airlines by segment fit using each segment's own feature-importance weights rather than one generic rating — e.g. surfacing Ground Service quality for economy leisure travelers, and Food & Beverages quality for first-class solo and business-class leisure travelers, since those are the segments where each factor actually moves the needle.",
+        "Prioritize service-recovery investment over premium upgrades: since the SHAP asymmetry shows downside outweighs upside for the top-weighted features, fixing bad cabin-crew and seat experiences protects more bookings than adding amenities on top of already-good ones.",
+        "Don't build recommendation logic on review-sentiment text alone — the ratings-only model matched or beat the sentiment-only model in nearly every segment, so structured ratings should stay the primary signal with ABSA sentiment as a secondary input at most.",
       ],
     },
   ],
