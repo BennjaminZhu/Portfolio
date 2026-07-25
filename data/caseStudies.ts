@@ -85,18 +85,61 @@ export const caseStudies: Record<string, ContentBlock[]> = {
     { type: "heading", text: "Double ML for subgroup effects" },
     {
       type: "paragraph",
-      text: "My individual focus was extending this into Double Machine Learning, to check the PSM result and estimate how the effect varies across customer segments. DML uses two random forest models — one predicting the outcome from confounders, one predicting treatment from confounders — and regresses the residuals of each to isolate the causal effect without the double-counting bias that omitted-variable confounders would otherwise introduce. Cross-fitting across 5 folds keeps every residual coming from a model that never saw that observation. The overall ATE from DML came out to +1.78pp (95% CI [0.58, 2.97], p = 0.0035) — consistent with the PSM estimate.",
+      text: "PSM gives one number for one comparison. My individual focus was extending the analysis with Double Machine Learning (DML) — both to check the PSM estimate with a completely different method, and to get at something PSM can't: how the effect of prior contact varies across customer segments, not just whether it exists on average.",
     },
     {
       type: "paragraph",
-      text: "The subgroup breakdown is where this became actionable: customers over 50 (+5.35pp), unemployed customers (+11.47pp), and those with professional-course education (+5.50pp) responded far more strongly to prior contact than the overall average. Customers under 30, in admin or blue-collar jobs, or with only basic education showed effects that weren't statistically distinguishable from zero.",
+      text: "The core problem DML solves is that with many confounders (W), directly regressing the outcome (Y) on treatment (T) risks omitted-variable bias — some of what looks like a treatment effect is really just W driving both T and Y. DML handles this with orthogonalization: it trains model_y, a 200-tree random forest predicting P(Y=1 | W), and model_t, a separate 200-tree random forest predicting P(T=1 | W) — essentially a machine-learned propensity score. Both sets of predictions are then subtracted out to get residuals, Ỹ = Y − g(W) and T̃ = T − m(W). Regressing Ỹ on T̃ gives the treatment effect using only the variation in T that W can't already explain, which is the part that behaves as if it were randomly assigned. To keep this honest, the whole thing runs through 5-fold cross-fitting: model_y and model_t are trained on 4 folds and only ever predict on the held-out fifth, so no observation's residual comes from a model that has already seen its outcome.",
+    },
+    {
+      type: "paragraph",
+      text: "I excluded pdays and poutcome from the confounder set even though both are predictive — they're mechanically downstream of the treatment variable itself (you can't have a 'previous outcome' without a previous contact), so including them would leak the treatment into the controls. I did include the macroeconomic indicators (employment variation rate, consumer price index, consumer confidence index, Euribor 3-month rate), since the campaign period spans the 2008 financial crisis and omitting them had visibly distorted earlier PSM/DML runs during development.",
+    },
+    {
+      type: "paragraph",
+      text: "The overall ATE from DML came out to +1.78pp (95% CI [0.58, 2.97], p = 0.0035) — independently consistent with the PSM estimate of 2.27pp, despite the two methods handling confounding in completely different ways.",
+    },
+    { type: "heading", text: "Two DML models, two different jobs" },
+    {
+      type: "paragraph",
+      text: "I used the same orthogonalized residuals to fit two different final-stage models, because a population-average effect and a per-customer effect are different questions. LinearDML regresses the residuals with an added interaction between treatment and each subgroup indicator (age band, job, education, and so on), which gives a statistically-tested ATE for every subgroup level directly. Separately, a Causal Forest of 400 honest trees estimates an Individual Treatment Effect, τ(X), for every customer individually — 'honest' meaning each tree uses one part of its data to decide where to split and a disjoint part to estimate the effect in each leaf, which stops the forest from carving out splits that look heterogeneous purely by chance. Averaging those individual τ(X) values within a subgroup is what produces the 'Mean ITE' charts below — a second, independent way of measuring the same subgroup heterogeneity that LinearDML tests directly.",
+    },
+    {
+      type: "image",
+      src: "/projects/bank-marketing-dml/subgroup-ate-forest.png",
+      alt: "Forest plot of subgroup average treatment effects from LinearDML, showing which age, job, and education groups have a statistically significant response to prior contact",
+      caption:
+        "LinearDML's subgroup ATEs: age >50, unemployed, technician, and professional-course customers are the only groups whose confidence interval clears zero.",
+    },
+    {
+      type: "paragraph",
+      text: "Customers over 50 (+5.35pp), unemployed customers (+11.47pp), and those with professional-course education (+5.50pp) responded far more strongly to prior contact than the overall average, and — critically — their confidence intervals don't cross zero. Customers under 30, in admin or blue-collar jobs, or with only basic education showed effects statistically indistinguishable from zero: re-contacting them isn't clearly doing anything.",
+    },
+    {
+      type: "image",
+      src: "/projects/bank-marketing-dml/ite-top-bottom-modifiers.png",
+      alt: "Summary chart comparing the highest-lift and lowest-lift levels of every categorical modifier, ranked by mean individual treatment effect",
+      caption:
+        "Highest-lift vs. lowest-lift levels across every modifier: retirees, older customers, and professional-course graduates cluster at the top; students, blue-collar workers, and cellular-only contacts cluster at the bottom.",
+    },
+    {
+      type: "paragraph",
+      text: "The Causal Forest's per-customer estimates line up with LinearDML's subgroup ATEs and add one dimension LinearDML doesn't test directly: contact channel and timing. Customers reached by telephone had more than double the mean ITE of those reached by cellular (3.89pp vs. 1.90pp), and campaigns run in June and August showed individual treatment effects several times larger than campaigns run in May or November — despite May being the highest-volume contact month in the dataset.",
+    },
+    {
+      type: "image",
+      src: "/projects/bank-marketing-dml/ite-by-month.png",
+      alt: "Bar chart of mean individual treatment effect by contact month, showing June and August far above other months and May and November near zero",
+      caption:
+        "Mean ITE by contact month: June (+6.33pp) and August (+5.50pp) dwarf May (+0.58pp), which was also the campaign's highest-volume month.",
     },
     { type: "heading", text: "Targeting recommendation" },
     {
       type: "list",
       items: [
-        "Prioritize follow-up contact for older, unemployed, and professionally-trained customer segments, where prior contact meaningfully moves subscription likelihood.",
+        "Prioritize follow-up contact for older, unemployed, and professionally-trained customer segments, where both PSM and DML agree prior contact meaningfully moves subscription likelihood.",
         "Scale back follow-up spend on segments with statistically insignificant response — the contact isn't converting them, it's just cost.",
+        "Re-time high-volume campaign months: May carried the most contact volume but one of the lowest returns, while June and August delivered outsized lift on far less volume — a scheduling shift, not just a targeting one.",
         "Replace bulk re-contact campaigns with response-aware targeting, which should lower marketing spend while modestly raising conversion.",
       ],
     },
