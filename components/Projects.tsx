@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { projects } from "@/data/projects";
 import Reveal from "./Reveal";
 import SectionMark from "./SectionMark";
@@ -13,7 +14,10 @@ export default function Projects() {
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
           {projects.map((project, i) => (
             <Reveal key={project.slug} delay={(i % 2) * 100}>
-              <article className="group flex h-full flex-col rounded-[4px] border border-line bg-paper p-7 transition-all duration-300 hover:-translate-y-1 hover:border-accent/60 hover:shadow-[0_12px_30px_-18px_rgba(27,42,46,0.35)]">
+              <Link
+                href={project.href}
+                className="group flex h-full flex-col rounded-[4px] border border-line bg-paper p-7 transition-all duration-300 hover:-translate-y-1 hover:border-accent/60 hover:shadow-[0_12px_30px_-18px_rgba(27,42,46,0.35)]"
+              >
                 <span className="font-mono text-xs uppercase tracking-[0.2em] text-accent">
                   {project.type}
                 </span>
@@ -35,10 +39,13 @@ export default function Projects() {
                   ))}
                 </ul>
 
-                <span className="mt-6 font-mono text-xs uppercase tracking-[0.15em] text-ink-muted transition-colors group-hover:text-accent">
+                <span className="mt-6 inline-flex items-center gap-2 font-mono text-xs uppercase tracking-[0.15em] text-ink-muted transition-colors group-hover:text-accent">
                   {project.linkLabel}
+                  <span className="transition-transform group-hover:translate-x-1">
+                    →
+                  </span>
                 </span>
-              </article>
+              </Link>
             </Reveal>
           ))}
         </div>
