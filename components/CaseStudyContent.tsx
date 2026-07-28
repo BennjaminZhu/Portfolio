@@ -49,7 +49,7 @@ export default function CaseStudyContent({
             return (
               <div
                 key={i}
-                className="grid grid-cols-2 gap-6 border-y border-line py-6 sm:grid-cols-3"
+                className="print-avoid-break grid grid-cols-2 gap-6 border-y border-line py-6 sm:grid-cols-3"
               >
                 {block.items.map((stat) => (
                   <div key={stat.label}>
@@ -68,7 +68,7 @@ export default function CaseStudyContent({
             return (
               <figure
                 key={i}
-                className="overflow-hidden rounded-[4px] border border-line bg-white"
+                className="print-avoid-break overflow-hidden rounded-[4px] border border-line bg-white"
               >
                 <Image
                   src={block.src}

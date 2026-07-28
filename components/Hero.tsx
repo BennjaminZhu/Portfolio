@@ -27,7 +27,7 @@ export default function Hero() {
             — from validated ML pipelines and causal analyses to
             recommendations stakeholders can move on.
           </p>
-          <div className="mt-9 flex flex-wrap items-center gap-4">
+          <div className="no-print mt-9 flex flex-wrap items-center gap-4">
             <a
               href="#work"
               className="rounded-[3px] bg-ink px-6 py-3 font-mono text-xs uppercase tracking-[0.15em] text-paper transition-colors hover:bg-accent"

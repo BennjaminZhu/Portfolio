@@ -9,7 +9,7 @@ export default function Footer() {
         </p>
         <a
           href="#top"
-          className="font-mono text-xs uppercase tracking-[0.15em] text-ink-muted transition-colors hover:text-accent"
+          className="no-print font-mono text-xs uppercase tracking-[0.15em] text-ink-muted transition-colors hover:text-accent"
         >
           Back to top ↑
         </a>

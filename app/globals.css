@@ -101,3 +101,37 @@ button:focus-visible {
     transform: none !important;
   }
 }
+
+/* PDF export via browser print (see DownloadPdfButton) */
+@media print {
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
+  }
+
+  html {
+    scroll-behavior: auto;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+
+  .draw-path,
+  .fade-in,
+  .reveal {
+    animation: none !important;
+    opacity: 1 !important;
+    stroke-dashoffset: 0 !important;
+    transform: none !important;
+  }
+
+  .print-avoid-break {
+    break-inside: avoid;
+  }
+
+  a[href]::after {
+    content: none !important;
+  }
+}

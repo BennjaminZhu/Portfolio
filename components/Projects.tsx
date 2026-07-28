@@ -16,7 +16,7 @@ export default function Projects() {
             <Reveal key={project.slug} delay={(i % 2) * 100}>
               <Link
                 href={project.href}
-                className="group flex h-full flex-col rounded-[4px] border border-line bg-paper p-7 transition-all duration-300 hover:-translate-y-1 hover:border-accent/60 hover:shadow-[0_12px_30px_-18px_rgba(27,42,46,0.35)]"
+                className="group print-avoid-break flex h-full flex-col rounded-[4px] border border-line bg-paper p-7 transition-all duration-300 hover:-translate-y-1 hover:border-accent/60 hover:shadow-[0_12px_30px_-18px_rgba(27,42,46,0.35)]"
               >
                 <span className="font-mono text-xs uppercase tracking-[0.2em] text-accent">
                   {project.type}

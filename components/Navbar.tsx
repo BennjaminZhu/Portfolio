@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import DownloadPdfButton from "./DownloadPdfButton";
 
 const LINKS = [
   { href: "#about", label: "About" },
@@ -41,7 +42,7 @@ export default function Navbar() {
 
   return (
     <header
-      className={`sticky top-0 z-50 border-b transition-colors duration-300 ${
+      className={`no-print sticky top-0 z-50 border-b transition-colors duration-300 ${
         scrolled
           ? "border-line bg-paper/90 backdrop-blur-sm"
           : "border-transparent bg-transparent"
@@ -70,6 +71,9 @@ export default function Navbar() {
               </a>
             </li>
           ))}
+          <li>
+            <DownloadPdfButton />
+          </li>
         </ul>
       </nav>
     </header>
