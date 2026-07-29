@@ -1,5 +1,6 @@
 import Image from "next/image";
 import type { ContentBlock } from "@/data/caseStudies";
+import PipelineDiagram from "./PipelineDiagram";
 
 export default function CaseStudyContent({
   blocks,
@@ -63,6 +64,47 @@ export default function CaseStudyContent({
                 ))}
               </div>
             );
+
+          case "summary":
+            return (
+              <div
+                key={i}
+                className="print-avoid-break rounded-[4px] border border-line bg-paper-deep/50 p-6 sm:p-7"
+              >
+                <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-accent">
+                  TL;DR
+                </p>
+                <div className="mt-4 grid gap-5 sm:grid-cols-3">
+                  <div>
+                    <p className="font-mono text-[10px] uppercase tracking-[0.1em] text-ink-muted">
+                      The question
+                    </p>
+                    <p className="mt-1.5 text-sm leading-relaxed text-ink">
+                      {block.question}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="font-mono text-[10px] uppercase tracking-[0.1em] text-ink-muted">
+                      The finding
+                    </p>
+                    <p className="mt-1.5 text-sm leading-relaxed text-ink">
+                      {block.headline}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="font-mono text-[10px] uppercase tracking-[0.1em] text-ink-muted">
+                      So what
+                    </p>
+                    <p className="mt-1.5 text-sm leading-relaxed text-ink">
+                      {block.recommendation}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            );
+
+          case "diagram":
+            return <PipelineDiagram key={i} title={block.title} steps={block.steps} />;
 
           case "image":
             return (

@@ -3,13 +3,37 @@ export type ContentBlock =
   | { type: "heading"; text: string }
   | { type: "list"; items: string[] }
   | { type: "stats"; items: { label: string; value: string }[] }
-  | { type: "image"; src: string; alt: string; caption: string };
+  | { type: "image"; src: string; alt: string; caption: string }
+  | { type: "summary"; question: string; headline: string; recommendation: string }
+  | { type: "diagram"; title: string; steps: string[] };
 
 export const caseStudies: Record<string, ContentBlock[]> = {
   "nba-matchup-predictor": [
     {
+      type: "summary",
+      question:
+        "Can a model beat naive baselines on next-game outcomes without leaking future information into training?",
+      headline:
+        "64.6% accuracy and 0.684 ROC-AUC across 66,738 games, with season-based temporal validation so the model never sees a team's future form.",
+      recommendation:
+        "Proves an end-to-end, leakage-safe ML pipeline — automated validation, feature engineering, and CLI-driven prediction, not just a notebook that scores well once.",
+    },
+    {
       type: "paragraph",
       text: "A personal project built to predict NBA game outcomes from historical form — and, just as importantly, to build the kind of data pipeline that doesn't quietly leak the answer into its own training set.",
+    },
+    {
+      type: "diagram",
+      title: "Pipeline architecture",
+      steps: [
+        "Raw game & team-statistics data",
+        "Cleaning & validation — dedupe, null/range, matchup-quality checks",
+        "Feature engineering — rolling form, rest days, home/away",
+        "Season-based temporal split (no future leakage)",
+        "Model training sweep — XGBoost · CatBoost · scikit-learn",
+        "Evaluation — 64.6% accuracy · 0.684 ROC-AUC",
+        "CLI automation → matchup prediction",
+      ],
     },
     { type: "heading", text: "Building a clean dataset" },
     {
@@ -38,8 +62,29 @@ export const caseStudies: Record<string, ContentBlock[]> = {
 
   "bank-marketing-dml": [
     {
+      type: "summary",
+      question:
+        "Does contacting a customer again actually increase term-deposit subscriptions, or were banks just re-contacting people who'd already say yes?",
+      headline:
+        "The 17.82pp raw gap collapses to a 2.27pp causal effect under PSM and a consistent 1.78pp under Double ML — two independent methods agreeing after selection bias is removed.",
+      recommendation:
+        "Prioritize follow-up on older, unemployed, and professionally-trained segments where the effect is real; stop spending on segments where it statistically isn't.",
+    },
+    {
       type: "paragraph",
       text: "A causal inference study for a course project asking a deceptively simple question: does contacting a customer again actually make them more likely to subscribe to a term deposit, or are banks just re-contacting people who were already going to say yes? I led the Double Machine Learning subgroup analysis within a larger group project on the UCI Bank Marketing dataset.",
+    },
+    {
+      type: "diagram",
+      title: "Two independent methods, cross-checked",
+      steps: [
+        "41,176 UCI Bank Marketing records",
+        "Confounder set — excludes pdays/poutcome (leaks treatment)",
+        "PSM track — propensity model → nearest-neighbor matching → ATT 2.27pp",
+        "Double ML track — 5-fold cross-fit residualization → LinearDML + Causal Forest",
+        "Robustness checks — caliper sensitivity, all significant",
+        "Targeting recommendation",
+      ],
     },
     { type: "heading", text: "The endogeneity problem" },
     {
@@ -146,6 +191,15 @@ export const caseStudies: Record<string, ContentBlock[]> = {
   ],
 
   "traveloka-cx-analysis": [
+    {
+      type: "summary",
+      question:
+        "Which service touchpoints actually drive airline satisfaction and recommendation — and does the answer change by traveler segment?",
+      headline:
+        "Cabin Staff and Seat Comfort dominate globally, but Ground Service only matters for non-business-class leisure travelers — a segment-specific finding a single global model would miss.",
+      recommendation:
+        "Lead with value-for-money messaging over price; prioritize fixing bad cabin-crew experiences over adding premium amenities, since SHAP shows downside costs more than upside gains.",
+    },
     {
       type: "paragraph",
       text: "A marketing analytics group project for Traveloka, an online travel agency that — at the time of the study — surfaced flights by price and schedule only. That creates information asymmetry: travelers can't see service quality until after they've already flown, which drives mismatched expectations and post-purchase dissonance. My individual focus was the Random Forest modeling and SHAP interpretation that turned raw review data into segment-specific recommendations.",
@@ -297,6 +351,15 @@ export const caseStudies: Record<string, ContentBlock[]> = {
   ],
 
   "cathay-hackathon": [
+    {
+      type: "summary",
+      question:
+        "How should inflight entertainment change to close the gap between what passengers want and what airlines build?",
+      headline:
+        "Finalist and Best Idea award among teams pitching a data-informed inflight-entertainment strategy to Cathay Pacific stakeholders in Hong Kong.",
+      recommendation:
+        "Ground product concepts in passenger research before deciding on features — the brief was open-ended, and research-first framing shaped the entire pitch.",
+    },
     {
       type: "paragraph",
       text: "A 2024 hackathon hosted in Hong Kong, focused on reimagining the inflight passenger experience for Cathay Pacific. Working with a small team over the course of the event, we researched passenger needs and existing market approaches to inflight entertainment, then structured those findings into a concrete strategy proposal.",
