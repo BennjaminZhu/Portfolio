@@ -157,6 +157,20 @@ export const caseStudies: Record<string, ContentBlock[]> = {
     },
     {
       type: "image",
+      src: "/projects/traveloka-cx-analysis/dataset-completeness.png",
+      alt: "Table summarizing row counts and missing-data percentages across the merged Airline, Airport, Lounge, and Seat Skytrax datasets",
+      caption:
+        "The merged dataset spanned four review types — Airlines (41,396 rows), Airports (17,721), Lounge (2,264), and Seat (1,258) — each with very different missingness by field, which shaped which variables were usable per segment.",
+    },
+    {
+      type: "image",
+      src: "/projects/traveloka-cx-analysis/airlines-descriptive.png",
+      alt: "Heatmap of descriptive statistics — mean, standard deviation, and quartiles — for airline sub-ratings and overall rating",
+      caption:
+        "Descriptive stats for the airline reviews: sub-ratings cluster around 2.2–3.3 on a 5-point scale, while overall_rating averages 6.04 on a 10-point scale — the baseline the correlation and SHAP analysis below build on.",
+    },
+    {
+      type: "image",
       src: "/projects/traveloka-cx-analysis/airline-correlation.png",
       alt: "Heatmap of correlations between airline marketing action ratings and overall rating / recommendation outcomes",
       caption:
