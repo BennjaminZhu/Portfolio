@@ -46,7 +46,7 @@ export default async function ProjectPage({
           <div className="mx-auto max-w-[840px] px-6 py-16 sm:px-10 sm:py-24">
             <Link
               href="/#work"
-              className="inline-flex items-center gap-2 font-mono text-xs uppercase tracking-[0.15em] text-ink-muted transition-colors hover:text-accent"
+              className="no-print inline-flex items-center gap-2 font-mono text-xs uppercase tracking-[0.15em] text-ink-muted transition-colors hover:text-accent"
             >
               ← Back to work
             </Link>

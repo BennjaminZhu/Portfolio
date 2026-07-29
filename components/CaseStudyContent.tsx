@@ -1,5 +1,6 @@
 import Image from "next/image";
 import type { ContentBlock } from "@/data/caseStudies";
+import PipelineDiagram from "./PipelineDiagram";
 
 export default function CaseStudyContent({
   blocks,
@@ -49,7 +50,7 @@ export default function CaseStudyContent({
             return (
               <div
                 key={i}
-                className="grid grid-cols-2 gap-6 border-y border-line py-6 sm:grid-cols-3"
+                className="print-avoid-break grid grid-cols-2 gap-6 border-y border-line py-6 sm:grid-cols-3"
               >
                 {block.items.map((stat) => (
                   <div key={stat.label}>
@@ -64,11 +65,52 @@ export default function CaseStudyContent({
               </div>
             );
 
+          case "summary":
+            return (
+              <div
+                key={i}
+                className="print-avoid-break rounded-[4px] border border-line bg-paper-deep/50 p-6 sm:p-7"
+              >
+                <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-accent">
+                  TL;DR
+                </p>
+                <div className="mt-4 grid gap-5 sm:grid-cols-3">
+                  <div>
+                    <p className="font-mono text-[10px] uppercase tracking-[0.1em] text-ink-muted">
+                      The question
+                    </p>
+                    <p className="mt-1.5 text-sm leading-relaxed text-ink">
+                      {block.question}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="font-mono text-[10px] uppercase tracking-[0.1em] text-ink-muted">
+                      The finding
+                    </p>
+                    <p className="mt-1.5 text-sm leading-relaxed text-ink">
+                      {block.headline}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="font-mono text-[10px] uppercase tracking-[0.1em] text-ink-muted">
+                      So what
+                    </p>
+                    <p className="mt-1.5 text-sm leading-relaxed text-ink">
+                      {block.recommendation}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            );
+
+          case "diagram":
+            return <PipelineDiagram key={i} title={block.title} steps={block.steps} />;
+
           case "image":
             return (
               <figure
                 key={i}
-                className="overflow-hidden rounded-[4px] border border-line bg-white"
+                className="print-avoid-break overflow-hidden rounded-[4px] border border-line bg-white"
               >
                 <Image
                   src={block.src}

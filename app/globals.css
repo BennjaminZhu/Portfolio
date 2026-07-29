@@ -9,9 +9,9 @@
   --color-accent-forest: #3d6a52;
   --color-line: #c9d0c6;
 
-  --font-display: "Newsreader", ui-serif, Georgia, serif;
-  --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, sans-serif;
-  --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --font-display: var(--font-newsreader), ui-serif, Georgia, serif;
+  --font-sans: var(--font-ibm-plex-sans), ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-mono: var(--font-ibm-plex-mono), ui-monospace, "SF Mono", Menlo, monospace;
 }
 
 :root {
@@ -99,5 +99,39 @@ button:focus-visible {
     opacity: 1 !important;
     stroke-dashoffset: 0 !important;
     transform: none !important;
+  }
+}
+
+/* PDF export via browser print (see DownloadPdfButton) */
+@media print {
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
+  }
+
+  html {
+    scroll-behavior: auto;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+
+  .draw-path,
+  .fade-in,
+  .reveal {
+    animation: none !important;
+    opacity: 1 !important;
+    stroke-dashoffset: 0 !important;
+    transform: none !important;
+  }
+
+  .print-avoid-break {
+    break-inside: avoid;
+  }
+
+  a[href]::after {
+    content: none !important;
   }
 }
