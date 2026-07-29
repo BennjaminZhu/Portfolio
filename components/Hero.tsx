@@ -1,3 +1,5 @@
+import HeroQuickActions from "./QuickActions";
+
 const POINTS: [number, number][] = [
   [20, 260],
   [80, 230],
@@ -23,9 +25,9 @@ export default function Hero() {
             Benjamin Zhu
           </h1>
           <p className="mt-6 max-w-md text-lg leading-relaxed text-ink-muted">
-            I turn raw, messy data into decisions people can actually act on
-            — from validated ML pipelines and causal analyses to
-            recommendations stakeholders can move on.
+            I build validated data pipelines and machine learning models,
+            then translate the output into recommendations a business can
+            actually act on — not just a number in a slide.
           </p>
           <div className="no-print mt-9 flex flex-wrap items-center gap-4">
             <a
@@ -41,6 +43,7 @@ export default function Hero() {
               Get in touch
             </a>
           </div>
+          <HeroQuickActions />
         </div>
 
         <HeroChart />

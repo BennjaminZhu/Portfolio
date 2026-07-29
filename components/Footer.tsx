@@ -8,7 +8,7 @@ export default function Footer() {
           © {year} Benjamin Zhu. Built with Next.js.
         </p>
         <a
-          href="#top"
+          href="/#top"
           className="no-print font-mono text-xs uppercase tracking-[0.15em] text-ink-muted transition-colors hover:text-accent"
         >
           Back to top ↑
